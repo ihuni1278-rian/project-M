@@ -11,3 +11,13 @@ export function createUser(users,displayName,role='user'){
  while(users.some(u=>u.name===name))name=display+String(n++).padStart(2,'0');
  return {name,displayName:display,role,password:'1111',reset:true,active:true,budget:false};
 }
+export function auditSnapshot(db){return JSON.parse(JSON.stringify(db,(k,v)=>['logs','password','data'].includes(k)?undefined:v));}
+export function auditDiff(before,after,path=''){
+ const changes=[];
+ for(const key of new Set([...Object.keys(before||{}),...Object.keys(after||{})])){
+ const a=before?.[key],b=after?.[key],p=path?path+'.'+key:key;
+ if(JSON.stringify(a)===JSON.stringify(b))continue;
+ if(a&&b&&typeof a==='object'&&typeof b==='object')changes.push(...auditDiff(a,b,p));
+ else changes.push({field:p,before:a??null,after:b??null});
+ }return changes;
+}

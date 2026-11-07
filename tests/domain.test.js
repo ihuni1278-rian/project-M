@@ -7,3 +7,6 @@ import {createUser} from '../domain.js';
 test('이름 기반 계정 자동 생성 및 첫 로그인 변경',()=>{const u=createUser([],' 홍길동 ');assert.equal(u.name,'홍길동');assert.equal(u.displayName,'홍길동');assert.equal(u.reset,true);assert.equal(u.role,'user');});
 test('동명이인과 중지 계정도 아이디 중복 방지',()=>{const u=createUser([{name:'홍길동',active:false},{name:'홍길동02'}],'홍길동');assert.equal(u.name,'홍길동03');assert.equal(u.displayName,'홍길동');});
 test('공백 이름 거부',()=>assert.throws(()=>createUser([],'   ')));
+import {auditSnapshot,auditDiff} from '../domain.js';
+test('변경 이력에 비밀번호와 파일 원문 제외',()=>{const s=auditSnapshot({users:[{password:'secret',name:'a'}],deliverables:[{data:'private'}],logs:[1]});assert.ok(!JSON.stringify(s).includes('secret'));assert.ok(!JSON.stringify(s).includes('private'));assert.equal(s.logs,undefined);});
+test('실적 수정 전후와 추가 사용자 기록',()=>{const changes=auditDiff({tasks:[{result:'전'}],users:[]},{tasks:[{result:'후'}],users:[{name:'신규'}]});assert.deepEqual(changes[0],{field:'tasks.0.result',before:'전',after:'후'});assert.equal(changes[1].after.name,'신규');});
