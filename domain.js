@@ -1,0 +1,5 @@
+export const uid=()=>crypto.randomUUID();
+export function confirmMeeting(db,m){if(m.confirmed)return;for(const a of m.actions){if(!db.tasks.some(t=>t.source===a.id))db.tasks.push({id:uid(),source:a.id,title:a.title,owner:a.owner,start:m.date,due:a.due,month:a.due.slice(0,7),goal:a.goal||'후속 조치 완료',result:'',issue:'',status:'진행 전',milestone:m.milestone});}m.confirmed=true;}
+export function carryTask(t,due){return {...t,id:uid(),parent:t.id,originalDue:t.originalDue||t.due,start:due,due,month:due.slice(0,7),result:'',status:'진행 전'};}
+export function report(db,from,to){const ts=db.tasks.filter(t=>t.due>=from&&t.due<=to);return [`업무 보고서 | ${from} ~ ${to}`,...ts.map(t=>`\n[${t.id}] ${t.title}\n담당: ${t.owner}\n계획: ${t.goal}\n실적: ${t.result||'미입력'}\n이슈: ${t.issue||'등록 없음'}\n상태: ${t.status}`)].join('\n');}
+export function milestoneProgress(db,m){const ds=db.deliverables.filter(d=>d.milestone===m);return ds.length?Math.round(ds.filter(d=>d.versions.at(-1)?.status==='제출 완료').length/ds.length*100):0;}

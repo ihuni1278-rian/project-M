@@ -1,0 +1,5 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {confirmMeeting,carryTask,report,milestoneProgress} from '../domain.js';
+test('회의 확정은 반복해도 업무 중복 생성 없음',()=>{const db={tasks:[]},m={date:'2026-11-01',actions:[{id:'a',title:'설계 검토',owner:'연구원',due:'2026-11-10'}]};confirmMeeting(db,m);confirmMeeting(db,m);assert.equal(db.tasks.length,1);assert.equal(db.tasks[0].source,'a');});
+test('이월은 원래 기한과 부모 업무 유지',()=>{const t={id:'t',due:'2026-11-01',result:'일부 완료'};const n=carryTask(t,'2026-11-08');assert.equal(n.originalDue,t.due);assert.equal(n.parent,'t');assert.equal(t.result,'일부 완료');assert.equal(n.result,'');});
+test('보고서는 범위 밖 업무 제외하고 미입력 명시',()=>{const db={tasks:[{id:'a',due:'2026-11-02',title:'포함'},{id:'b',due:'2026-12-01',title:'제외'}]};const s=report(db,'2026-11-01','2026-11-30');assert.ok(s.includes('포함'));assert.ok(s.includes('미입력'));assert.ok(!s.includes('제외'));});
+test('새 버전 추가 후 과거 제출 승계하지 않음',()=>{const db={deliverables:[{milestone:'m',versions:[{status:'제출 완료'},{status:'검토 요청'}]}]};assert.equal(milestoneProgress(db,'m'),0);db.deliverables[0].versions.at(-1).status='제출 완료';assert.equal(milestoneProgress(db,'m'),100);});
