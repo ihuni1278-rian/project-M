@@ -3,3 +3,7 @@ test('회의 확정은 반복해도 업무 중복 생성 없음',()=>{const db={
 test('이월은 원래 기한과 부모 업무 유지',()=>{const t={id:'t',due:'2026-11-01',result:'일부 완료'};const n=carryTask(t,'2026-11-08');assert.equal(n.originalDue,t.due);assert.equal(n.parent,'t');assert.equal(t.result,'일부 완료');assert.equal(n.result,'');});
 test('보고서는 범위 밖 업무 제외하고 미입력 명시',()=>{const db={tasks:[{id:'a',due:'2026-11-02',title:'포함'},{id:'b',due:'2026-12-01',title:'제외'}]};const s=report(db,'2026-11-01','2026-11-30');assert.ok(s.includes('포함'));assert.ok(s.includes('미입력'));assert.ok(!s.includes('제외'));});
 test('새 버전 추가 후 과거 제출 승계하지 않음',()=>{const db={deliverables:[{milestone:'m',versions:[{status:'제출 완료'},{status:'검토 요청'}]}]};assert.equal(milestoneProgress(db,'m'),0);db.deliverables[0].versions.at(-1).status='제출 완료';assert.equal(milestoneProgress(db,'m'),100);});
+import {createUser} from '../domain.js';
+test('이름 기반 계정 자동 생성 및 첫 로그인 변경',()=>{const u=createUser([],' 홍길동 ');assert.equal(u.name,'홍길동');assert.equal(u.displayName,'홍길동');assert.equal(u.reset,true);assert.equal(u.role,'user');});
+test('동명이인과 중지 계정도 아이디 중복 방지',()=>{const u=createUser([{name:'홍길동',active:false},{name:'홍길동02'}],'홍길동');assert.equal(u.name,'홍길동03');assert.equal(u.displayName,'홍길동');});
+test('공백 이름 거부',()=>assert.throws(()=>createUser([],'   ')));
