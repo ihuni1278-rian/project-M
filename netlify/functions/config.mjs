@@ -1,0 +1,1 @@
+export default async()=>new Response(JSON.stringify({url:process.env.SUPABASE_URL||'',key:process.env.SUPABASE_PUBLISHABLE_KEY||''}),{headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
